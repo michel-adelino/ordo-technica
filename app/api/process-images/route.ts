@@ -179,11 +179,11 @@ Be specific and professional.`,
           max_tokens: 1000,
         });
 
-        const timeoutPromise = new Promise((_, reject) =>
+        const timeoutPromise = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Vision analysis timeout')), 30000)
         );
 
-        const visionResponse = await Promise.race([visionPromise, timeoutPromise]) as Awaited<ReturnType<typeof visionPromise>>;
+        const visionResponse = await Promise.race([visionPromise, timeoutPromise]);
         visualAnalysis = visionResponse.choices[0]?.message?.content || '';
       } catch (error) {
         console.error('GPT-4o-vision error:', error);
@@ -258,11 +258,11 @@ Return ONLY valid JSON in this exact format:
           max_tokens: 1500,
         });
 
-        const timeoutPromise = new Promise((_, reject) =>
+        const timeoutPromise = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Content generation timeout')), 45000)
         );
 
-        const generationResponse = await Promise.race([generationPromise, timeoutPromise]) as Awaited<ReturnType<typeof generationPromise>>;
+        const generationResponse = await Promise.race([generationPromise, timeoutPromise]);
 
         const content = generationResponse.choices[0]?.message?.content;
         if (!content) {
