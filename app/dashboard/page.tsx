@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
 import PhotoUpload from '@/components/PhotoUpload';
@@ -17,7 +17,7 @@ interface SubscriptionData {
   trialStartDate?: string;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [files, setFiles] = useState<File[]>([]);
   const [processingState, setProcessingState] = useState<ProcessingState>('idle');
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
@@ -305,5 +305,20 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
+        </div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }

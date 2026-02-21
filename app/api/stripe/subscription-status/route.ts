@@ -4,6 +4,9 @@ import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe';
 import { getUserSubscriptionData, updateUserSubscriptionData } from '@/lib/subscription';
 
+// Mark route as dynamic since it uses auth() which accesses headers
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -16,14 +19,16 @@ export async function GET(request: NextRequest) {
     // If user has a Stripe subscription ID, check it directly from Stripe
     if (subscriptionData.stripeSubscriptionId) {
       try {
-        const subscription: Stripe.Subscription = await stripe.subscriptions.retrieve(
+        const subscription = await stripe.subscriptions.retrieve(
           subscriptionData.stripeSubscriptionId
         );
 
         // Update local status if it differs from Stripe
         if (subscription.status !== subscriptionData.subscriptionStatus) {
-          const endDate = subscription.current_period_end
-            ? new Date(subscription.current_period_end * 1000).toISOString()
+          // Access current_period_end with type assertion (property exists on Subscription)
+          const currentPeriodEnd = (subscription as any).current_period_end as number | null | undefined;
+          const endDate = currentPeriodEnd
+            ? new Date(currentPeriodEnd * 1000).toISOString()
             : undefined;
           
           await updateUserSubscriptionData(userId, {

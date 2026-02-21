@@ -35,13 +35,17 @@ export async function POST(request: NextRequest) {
       const subscriptionData = await getUserSubscriptionData(userId);
 
       // Update subscription status
+      // Access current_period_end with type assertion (property exists on Subscription)
+      const currentPeriodEnd = (subscription as any).current_period_end as number | null | undefined;
+      const endDate = currentPeriodEnd
+        ? new Date(currentPeriodEnd * 1000).toISOString()
+        : undefined;
+      
       await updateUserSubscriptionData(userId, {
         subscriptionStatus: subscription.status as any,
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: subscription.customer as string,
-        subscriptionEndDate: subscription.current_period_end
-          ? new Date(subscription.current_period_end * 1000).toISOString()
-          : undefined,
+        subscriptionEndDate: endDate,
       });
 
       return NextResponse.json({
@@ -84,19 +88,21 @@ export async function GET(request: NextRequest) {
 
         // Update local status if it differs
         if (subscription.status !== subscriptionData.subscriptionStatus) {
+          // Access current_period_end with type assertion (property exists on Subscription)
+          const currentPeriodEnd = (subscription as any).current_period_end as number | null | undefined;
+          const endDate = currentPeriodEnd
+            ? new Date(currentPeriodEnd * 1000).toISOString()
+            : undefined;
+          
           await updateUserSubscriptionData(userId, {
             subscriptionStatus: subscription.status as any,
-            subscriptionEndDate: subscription.current_period_end
-              ? new Date(subscription.current_period_end * 1000).toISOString()
-              : undefined,
+            subscriptionEndDate: endDate,
           });
 
           return NextResponse.json({
             ...subscriptionData,
             subscriptionStatus: subscription.status,
-            subscriptionEndDate: subscription.current_period_end
-              ? new Date(subscription.current_period_end * 1000).toISOString()
-              : undefined,
+            subscriptionEndDate: endDate,
           });
         }
       } catch (error) {
